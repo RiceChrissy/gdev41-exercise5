@@ -3,10 +3,11 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <iostream>
+#include <vector>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
-const int numberOfCircles = 5;
+// const int numberOfCircles = 5;
 const float FPS = 60;
 const float TIMESTEP = 1 / FPS; // Sets the timestep to 1 / FPS. But timestep can be any very small value.
 
@@ -39,7 +40,7 @@ bool isCirclesColliding(Ball b1, Ball b2)
     float distance = getDistance(b1, b2);
     if (distance <= sumOfRadii)
     {
-        std::cout << "colliding" << std::endl;
+        // std::cout << "colliding" << std::endl;
         return true;
     }
     return false;
@@ -59,6 +60,62 @@ bool isCirclesColliding(Ball b1, Ball b2)
 //     return false;
 // }
 
+float RandomDirection()
+{
+    float x = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+
+    // Make it [-1, 1]
+    return x * 2.0f - 1.0f;
+}
+
+void InitializeBall(std::vector<Ball> &array, int arraySize)
+{
+    for (size_t i = 0; i < arraySize; i++)
+    {
+        Ball ball;
+        Color randomColor = {
+            GetRandomValue(0, 255),
+            GetRandomValue(0, 255),
+            GetRandomValue(0, 255),
+            255};
+        ball.position = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
+        ball.radius = (float)GetRandomValue(5, 10);
+        ball.color = randomColor;
+        ball.mass = 1;
+        ball.inverse_mass = 1;
+        ball.velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
+        array.push_back(ball);
+
+        // array[i].position = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
+        // array[i].radius = (float)GetRandomValue(5, 10);
+        // Color randomColor = {
+        //     GetRandomValue(0, 255),
+        //     GetRandomValue(0, 255),
+        //     GetRandomValue(0, 255),
+        //     255};
+        // array[i].color = randomColor;
+        // array[i].mass = 1;
+        // array[i].inverse_mass = 1;
+        // array[i].velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
+        // std::cout << "Initialized Particle" << std::endl;
+    }
+}
+
+// void UpdateParticle(Particle *particle, float deltaTime)
+// {
+//     if (particle->lifeTime <= 0)
+//     {
+//         particle->isActive = false;
+//     }
+//     else
+//     {
+//         particle->position.x += (particle->speed * particle->direction.x) * deltaTime;
+//         particle->position.y += (particle->speed * particle->direction.y) * deltaTime;
+//         particle->lifeTime -= deltaTime;
+//         particle->color.a = 255 * (particle->lifeTime / particle->totalTime);
+//     }
+// }
+
 int main()
 {
     Ball ball;
@@ -69,72 +126,6 @@ int main()
     ball.inverse_mass = 1 / ball.mass;
     ball.velocity = Vector2Zero();
 
-    Ball ball2;
-    ball2.position = {500, WINDOW_HEIGHT / 2};
-    ball2.radius = 30.0f;
-    ball2.color = PURPLE;
-    ball2.mass = 1.0f;
-    ball2.inverse_mass = 1 / ball.mass;
-    ball2.velocity = Vector2Zero();
-
-    Ball ball3;
-    ball3.position = {600, WINDOW_HEIGHT / 2};
-    ball3.radius = 30.0f;
-    ball3.color = YELLOW;
-    ball3.mass = 1.0f;
-    ball3.inverse_mass = 1 / ball.mass;
-    ball3.velocity = Vector2Zero();
-
-    Ball ball4;
-    ball4.position = {550, (WINDOW_HEIGHT / 2) - 40};
-    ball4.radius = 30.0f;
-    ball4.color = BLACK;
-    ball4.mass = 1.0f;
-    ball4.inverse_mass = 1 / ball.mass;
-    ball4.velocity = Vector2Zero();
-
-    Ball ball5;
-    ball5.position = {550, (WINDOW_HEIGHT / 2) + 40};
-    ball5.radius = 30.0f;
-    ball5.color = BLUE;
-    ball5.mass = 1.0f;
-    ball5.inverse_mass = 1 / ball.mass;
-    ball5.velocity = Vector2Zero();
-
-    Ball ballArray[numberOfCircles] = {ball, ball2, ball3, ball4, ball5};
-
-    Ball upperLeft;
-    upperLeft.position = {37.5, 37.5};
-    upperLeft.radius = 37.5;
-    upperLeft.color = BLACK;
-    upperLeft.mass = 0.0f;
-    upperLeft.inverse_mass = 1 / ball.mass;
-    upperLeft.velocity = Vector2Zero();
-
-    Ball upperRight;
-    upperRight.position = {800 - 37.5, 37.5};
-    upperRight.radius = 37.5;
-    upperRight.color = BLACK;
-    upperRight.mass = 0.0f;
-    upperRight.inverse_mass = 1 / ball.mass;
-    upperRight.velocity = Vector2Zero();
-
-    Ball lowerLeft;
-    lowerLeft.position = {37.5, 600 - 37.5};
-    lowerLeft.radius = 37.5;
-    lowerLeft.color = BLACK;
-    lowerLeft.mass = 0.0f;
-    lowerLeft.inverse_mass = 1 / ball.mass;
-    lowerLeft.velocity = Vector2Zero();
-
-    Ball lowerRight;
-    lowerRight.position = {800 - 37.5, 600 - 37.5};
-    lowerRight.radius = 37.5;
-    lowerRight.color = BLACK;
-    lowerRight.mass = 0.0f;
-    lowerRight.inverse_mass = 1 / ball.mass;
-    lowerRight.velocity = Vector2Zero();
-
     int elasticityCoefficient = 0.5f;
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Homework 3");
@@ -143,67 +134,27 @@ int main()
 
     float accumulator = 0;
 
+    std::vector<Ball> ballArray;
+
     while (!WindowShouldClose())
     {
         float delta_time = GetFrameTime();
         Vector2 forces = Vector2Zero();
-        Vector2 *dragLine0 = new Vector2{Vector2Zero()}; // Cueball Position
-        Vector2 *dragLine1 = new Vector2{Vector2Zero()}; // Mouse Position
-        Vector2 *dragLine2 = new Vector2{Vector2Zero()}; // Vector Between Cueball and Mouse
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-        {
-            *dragLine0 = ballArray[0].position;
-            *dragLine1 = GetMousePosition();
-
-            if (Vector2Distance(*dragLine0, *dragLine1) > 150.0f)
-            {
-                *dragLine2 = Vector2Scale(Vector2Normalize(Vector2Subtract(*dragLine1, *dragLine0)), 150.0f);
-            }
-            else
-            {
-                *dragLine2 = Vector2Scale(Vector2Normalize(Vector2Subtract(*dragLine1, *dragLine0)), Vector2Distance(*dragLine0, *dragLine1));
-            }
-
-            std::cout << dragLine1->x << " " << dragLine1->y << "   " << GetMousePosition().x << " " << GetMousePosition().y << std::endl;
-        }
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-        {
-            *dragLine0 = ballArray[0].position;
-            *dragLine1 = GetMousePosition();
-            if (Vector2Distance(*dragLine0, *dragLine1) > 150.0f)
-            {
-                *dragLine2 = Vector2Scale(Vector2Normalize(Vector2Subtract(*dragLine1, *dragLine0)), 150.0f);
-            }
-            else
-            {
-                *dragLine2 = Vector2Scale(Vector2Normalize(Vector2Subtract(*dragLine1, *dragLine0)), Vector2Distance(*dragLine0, *dragLine1));
-            }
-            // Multiplying forces by 500
-            forces = Vector2Add(forces, Vector2Scale(*dragLine2, -500.0f));
-
-            std::cout << "Force Vector : " << forces.x << " " << forces.y << std::endl;
-            delete[] dragLine0, dragLine1, dragLine2;
-        }
         if (IsKeyPressed(KEY_SPACE))
         {
-            std::cout << "key pressed space" << std::endl;
-            for (int i = 0; i < numberOfCircles; i++)
-            {
-                std::cout << "ball position " << i << " : " << ballArray[i].position.x << " " << ballArray[i].position.y << std::endl;
-                ballArray[i].velocity = Vector2Zero();
-            }
+            InitializeBall(ballArray, 25);
         }
 
         // Physics
         accumulator += delta_time;
         while (accumulator >= TIMESTEP)
         {
-            for (int i = 0; i < numberOfCircles; i++)
+            for (int i = 0; i < ballArray.size(); i++)
             {
                 // std::cout << "i, k: " << i << " " << k << std::endl;
                 // ballArray[i].velocity = Vector2Add(ballArray[i].velocity, Vector2Scale(ballArray[i].acceleration, TIMESTEP));
-                ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
+                // ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
                 // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
                 ballArray[i].position = Vector2Add(ballArray[i].position, Vector2Scale(ballArray[i].velocity, TIMESTEP));
 
@@ -215,20 +166,20 @@ int main()
                 {
                     ballArray[i].velocity.y *= -1;
                 }
-                for (int k = 0; k < numberOfCircles; k++)
+                for (int k = 0; k < ballArray.size(); k++)
                 {
                     if (k == i)
                     {
                         k++;
                     }
-                    if (k >= numberOfCircles || i >= numberOfCircles)
+                    if (k >= ballArray.size() || i >= ballArray.size())
                     {
                         break;
                     }
 
-                    if (isCirclesColliding(ballArray[i], ballArray[k]))
+                    Vector2 n = Vector2Subtract(ballArray[i].position, ballArray[k].position); // currently swapped (as per sir's comment)
+                    if (isCirclesColliding(ballArray[i], ballArray[k]) && Vector2DotProduct(n, Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/)) < 0)
                     {
-                        Vector2 n = Vector2Subtract(ballArray[i].position, ballArray[k].position); // currently swapped (as per sir's comment)
                         float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/), n)) / (Vector2DotProduct(n, n) * (1 / ballArray[i].mass) + (1 / ballArray[k].mass)));
                         Vector2 newVelocity = Vector2Add(ballArray[i].velocity, Vector2Scale(n, (j / ballArray[i].mass)));
                         ballArray[i].velocity = newVelocity;
@@ -243,16 +194,16 @@ int main()
         BeginDrawing();
         ClearBackground(WHITE);
 
-        for (size_t i = 0; i < numberOfCircles; i++)
+        // for (size_t i = 0; i < numberOfCircles; i++)
+        // {
+        //     DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
+        // }
+        for (size_t i = 0; i < ballArray.size(); i++)
         {
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
         }
-
         // pool table border
         ClearBackground(WHITE);
-
-        // cue ball dragging
-        DrawLineEx(*dragLine0, Vector2Add(*dragLine0, *dragLine2), 7.5f, YELLOW);
 
         EndDrawing();
     }
