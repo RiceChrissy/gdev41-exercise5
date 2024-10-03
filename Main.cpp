@@ -68,7 +68,7 @@ float RandomDirection()
     return x * 2.0f - 1.0f;
 }
 
-void InitializeBall(std::vector<Ball> &array, int arraySize)
+void InitializeBall(std::vector<Ball> &array, int arraySize, bool isLarge)
 {
     for (size_t i = 0; i < arraySize; i++)
     {
@@ -79,25 +79,21 @@ void InitializeBall(std::vector<Ball> &array, int arraySize)
             GetRandomValue(0, 255),
             255};
         ball.position = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
-        ball.radius = (float)GetRandomValue(5, 10);
+        if (isLarge)
+        {
+            ball.radius = 25.0f;
+            ball.mass = 10.0f;
+            ball.inverse_mass = 1.0f / 10.0f;
+        }
+        else
+        {
+            ball.radius = (float)GetRandomValue(5, 10);
+            ball.mass = 1.0f;
+            ball.inverse_mass = 1.0f;
+        }
         ball.color = randomColor;
-        ball.mass = 1;
-        ball.inverse_mass = 1;
         ball.velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
         array.push_back(ball);
-
-        // array[i].position = {WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2};
-        // array[i].radius = (float)GetRandomValue(5, 10);
-        // Color randomColor = {
-        //     GetRandomValue(0, 255),
-        //     GetRandomValue(0, 255),
-        //     GetRandomValue(0, 255),
-        //     255};
-        // array[i].color = randomColor;
-        // array[i].mass = 1;
-        // array[i].inverse_mass = 1;
-        // array[i].velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
-        // std::cout << "Initialized Particle" << std::endl;
     }
 }
 
@@ -118,13 +114,13 @@ void InitializeBall(std::vector<Ball> &array, int arraySize)
 
 int main()
 {
-    Ball ball;
-    ball.position = {200, WINDOW_HEIGHT / 2};
-    ball.radius = 30.0f;
-    ball.color = WHITE;
-    ball.mass = 1.0f;
-    ball.inverse_mass = 1 / ball.mass;
-    ball.velocity = Vector2Zero();
+    // Ball ball;
+    // ball.position = {200, WINDOW_HEIGHT / 2};
+    // ball.radius = 30.0f;
+    // ball.color = WHITE;
+    // ball.mass = 1.0f;
+    // ball.inverse_mass = 1 / ball.mass;
+    // ball.velocity = Vector2Zero();
 
     int elasticityCoefficient = 0.5f;
 
@@ -135,6 +131,7 @@ int main()
     float accumulator = 0;
 
     std::vector<Ball> ballArray;
+    int spawnInstance = 0;
 
     while (!WindowShouldClose())
     {
@@ -143,8 +140,17 @@ int main()
 
         if (IsKeyPressed(KEY_SPACE))
         {
-            InitializeBall(ballArray, 25);
-            std::cout << ballArray.size() << std::endl;
+            if (spawnInstance == 9)
+            {
+                InitializeBall(ballArray, 1, true);
+                spawnInstance = 0;
+            }
+            else
+            {
+                InitializeBall(ballArray, 25, false);
+                spawnInstance++;
+            }
+            // std::cout << ballArray.size() << std::endl;
         }
 
         // Physics
@@ -173,7 +179,7 @@ int main()
                     {
                         k++;
                     }
-                    if (k >= ballArray.size() || i >= ballArray.size())
+                    else if (k >= ballArray.size() || i >= ballArray.size())
                     {
                         break;
                     }
@@ -195,16 +201,10 @@ int main()
         BeginDrawing();
         ClearBackground(WHITE);
 
-        // for (size_t i = 0; i < numberOfCircles; i++)
-        // {
-        //     DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
-        // }
-        for (size_t i = 0; i < ballArray.size(); i++)
+        for (int i = 0; i < ballArray.size(); i++)
         {
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
         }
-        // pool table border
-        ClearBackground(WHITE);
 
         EndDrawing();
     }
