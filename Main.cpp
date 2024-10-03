@@ -144,6 +144,7 @@ int main()
         if (IsKeyPressed(KEY_SPACE))
         {
             InitializeBall(ballArray, 25);
+            std::cout << ballArray.size() << std::endl;
         }
 
         // Physics
