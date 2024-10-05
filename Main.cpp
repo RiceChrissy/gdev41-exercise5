@@ -4,6 +4,7 @@
 #include <raymath.h>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -21,6 +22,7 @@ struct Ball
     float mass;
     float inverse_mass; // A variable for 1 / mass. Used in the calculation for acceleration = sum of forces / mass
     Vector2 velocity;
+
 };
 
 struct cell{
@@ -38,6 +40,14 @@ struct cell{
 
     bool operator==(const Vector2& position){
         return (this->position.x == position.x && this->position.y == position.y);
+    }
+
+    void addBall(Ball ball){
+        this->ballsInCell.push_back(ball);
+    }
+
+    void clearBalls(){  
+        this->ballsInCell.clear();
     }
 };
 
@@ -67,6 +77,30 @@ void initializeAllCells(std::vector<std::vector<cell>> &Cells){
             row.push_back(x); 
         }
         Cells.push_back(row);
+    }
+}
+
+void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball){
+    Vector2 max = Vector2{ball.position.x + ball.radius, ball.position.y + ball.radius};
+    Vector2 min = Vector2{ball.position.x - ball.radius, ball.position.y - ball.radius};
+
+    Vector2 indexAtMin = getNearestIndexAtPoint(min);
+    Vector2 indexAtCenter = getNearestIndexAtPoint(ball.position);
+    Vector2 indexAtMax = getNearestIndexAtPoint(max);
+
+    grid[indexAtMin.x][indexAtMin.y].addBall(ball);
+    grid[indexAtCenter.x][indexAtCenter.y].addBall(ball);
+    grid[indexAtMax.x][indexAtMax.y].addBall(ball);
+}
+
+void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls){
+    for(int i = 0; i < grid.size(); i++){
+        for(int j = 0; j < grid[i].size(); j++){
+            grid[i][j].clearBalls();
+        }
+    }
+    for(int k = 0; k < balls.size(); k++){
+        
     }
 }
 
@@ -162,13 +196,16 @@ void InitializeBall(std::vector<Ball> &array, int arraySize, bool isLarge)
 
 int main()
 {
-    // Ball ball;
-    // ball.position = {200, WINDOW_HEIGHT / 2};
-    // ball.radius = 30.0f;
-    // ball.color = WHITE;
-    // ball.mass = 1.0f;
-    // ball.inverse_mass = 1 / ball.mass;
-    // ball.velocity = Vector2Zero();
+    /*
+    Ball ball;
+    ball.position = {200, WINDOW_HEIGHT / 2};
+    ball.radius = 30.0f;
+    ball.color = WHITE;
+    ball.mass = 1.0f;
+    ball.inverse_mass = 1 / ball.mass;
+    ball.velocity = Vector2Zero();
+    */
+
 
     int elasticityCoefficient = 0.5f;
 
@@ -184,15 +221,20 @@ int main()
     std::vector<std::vector<cell>> grid;
     initializeAllCells(grid);
 
-   
     bool drawGrid = false;
+
+    std::cout << grid[0][0].ballsInCell[0].position.x << " " << grid[0][0].ballsInCell[0].position.y << std::endl;
     while (!WindowShouldClose())
     {
         
         float delta_time = GetFrameTime();
         Vector2 forces = Vector2Zero();
+
+        /*
         Vector2 mouseIndexLocation = getNearestIndexAtPoint(GetMousePosition());
         std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
+        */
+
 
         if (IsKeyPressed(KEY_TAB)){
             drawGrid = !drawGrid;
@@ -222,7 +264,6 @@ int main()
                 // ballArray[i].velocity = Vector2Add(ballArray[i].velocity, Vector2Scale(ballArray[i].acceleration, TIMESTEP));
                 // ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
                 // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
-                ballArray[i].position = Vector2Add(ballArray[i].position, Vector2Scale(ballArray[i].velocity, TIMESTEP));
 
                 if (ballArray[i].position.x + ballArray[i].radius >= WINDOW_WIDTH || ballArray[i].position.x - ballArray[i].radius <= 0)
                 {
