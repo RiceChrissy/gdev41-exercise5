@@ -39,6 +39,13 @@ struct cell{
     bool operator==(const Vector2& position){
         return (this->position.x == position.x && this->position.y == position.y);
     }
+    void addBalls(){
+        this->ballsInCell.clear();
+    }
+
+    void clearBalls(){
+        this->ballsInCell.clear();
+    }
 };
 
 Vector2 getNearestIndexAtPoint(Vector2 position){
@@ -67,6 +74,29 @@ void initializeAllCells(std::vector<std::vector<cell>> &Cells){
             row.push_back(x); 
         }
         Cells.push_back(row);
+    }
+}
+
+void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball){
+    Vector2 max = Vector2{ball.position.x + ball.radius, ball.position.y + ball.radius};
+    Vector2 min = Vector2{ball.position.x - ball.radius, ball.position.y - ball.radius};
+
+    Vector2 indexAtMin = getNearestIndexAtPoint(min);
+    Vector2 indexAtCenter = getNearestIndexAtPoint(ball.position);
+    Vector2 indexAtMax = getNearestIndexAtPoint(max);
+
+    /*
+    grid[indexAtMin.x][indexAtMin.y].addBall(ball);
+    grid[indexAtCenter.x][indexAtCenter.y].addBall(ball);
+    grid[indexAtMax.x][indexAtMax.y].addBall(ball);
+    */
+}
+
+void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls){
+    for(int i = 0; i < grid.size(); i++){
+        for(int j = 0; j < grid[i].size(); j++){
+            grid[i][j].clearBalls();
+        }
     }
 }
 
