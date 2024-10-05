@@ -136,14 +136,48 @@ void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> 
 
 
 
-void checkCollisionInCell(std::vector<std::vector<cell>> &grid){
+void checkCollisionInCell(std::vector<std::vector<cell>> &grid, float elasticityCoefficient){
     for(int i = 0; i < grid.size(); i++){
         for(int j = 0; j < grid[i].size(); j++){
             if(grid[i][j].isEmpty()){
                 continue;
             }
             for(int k = 0; k < grid[i][j].ballsInCell.size(); k++){
-                
+                // std::cout << "i, k: " << i << " " << k << std::endl;
+                // ballArray[i].velocity = Vector2Add(ballArray[i].velocity, Vector2Scale(ballArray[i].acceleration, TIMESTEP));
+                // ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
+                // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
+                grid[i][j].ballsInCell[k].position = Vector2Add(grid[i][j].ballsInCell[k].position, Vector2Scale(grid[i][j].ballsInCell[k].velocity, TIMESTEP));
+
+                if (grid[i][j].ballsInCell[k].position.x + grid[i][j].ballsInCell[k].radius >= WINDOW_WIDTH || grid[i][j].ballsInCell[k].position.x - grid[i][j].ballsInCell[k].radius <= 0)
+                {
+                    grid[i][j].ballsInCell[k].velocity.x *= -1;
+                }
+                if (grid[i][j].ballsInCell[k].position.y + grid[i][j].ballsInCell[k].radius >= WINDOW_HEIGHT || grid[i][j].ballsInCell[k].position.y - grid[i][j].ballsInCell[k].radius <= 0)
+                {
+                    grid[i][j].ballsInCell[k].velocity.y *= -1;
+                }
+                for (int l = 0; l < grid[i][j].ballsInCell.size(); l++)
+                {
+                    if (l == k)
+                    {
+                        l++;
+                    }
+                    else if (l >= grid[i][j].ballsInCell.size() || k >= grid[i][j].ballsInCell.size())
+                    {
+                        break;
+                    }
+
+                    Vector2 n = Vector2Normalize(Vector2Subtract(grid[i][j].ballsInCell[k].position, grid[i][j].ballsInCell[l].position));
+                    if (isCirclesColliding(grid[i][j].ballsInCell[k], grid[i][j].ballsInCell[l]) && Vector2DotProduct(n, Vector2Subtract(grid[i][j].ballsInCell[k].velocity, grid[i][j].ballsInCell[l].velocity /**/)) < 0)
+                    {
+                        float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(grid[i][j].ballsInCell[k].velocity, grid[i][j].ballsInCell[l].velocity /**/), n)) / (Vector2DotProduct(n, n) * (1 / grid[i][j].ballsInCell[k].mass) + (1 / grid[i][j].ballsInCell[l].mass)));
+                        Vector2 newVelocity = Vector2Add(grid[i][j].ballsInCell[k].velocity, Vector2Scale(n, (j / grid[i][j].ballsInCell[k].mass)));
+                        grid[i][j].ballsInCell[k].velocity = newVelocity;
+                        Vector2 newVelocity2 = Vector2Subtract(grid[i][j].ballsInCell[l].velocity, Vector2Scale(n, (j / grid[i][j].ballsInCell[l].mass)));
+                        grid[i][j].ballsInCell[l].velocity = newVelocity2;
+                    }
+                }
             }
         }
     }
@@ -300,44 +334,7 @@ int main()
         accumulator += delta_time;
         while (accumulator >= TIMESTEP)
         {
-            for (int i = 0; i < ballArray.size(); i++)
-            {
-                // std::cout << "i, k: " << i << " " << k << std::endl;
-                // ballArray[i].velocity = Vector2Add(ballArray[i].velocity, Vector2Scale(ballArray[i].acceleration, TIMESTEP));
-                // ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
-                // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
-                ballArray[i].position = Vector2Add(ballArray[i].position, Vector2Scale(ballArray[i].velocity, TIMESTEP));
-
-                if (ballArray[i].position.x + ballArray[i].radius >= WINDOW_WIDTH || ballArray[i].position.x - ballArray[i].radius <= 0)
-                {
-                    ballArray[i].velocity.x *= -1;
-                }
-                if (ballArray[i].position.y + ballArray[i].radius >= WINDOW_HEIGHT || ballArray[i].position.y - ballArray[i].radius <= 0)
-                {
-                    ballArray[i].velocity.y *= -1;
-                }
-                for (int k = 0; k < ballArray.size(); k++)
-                {
-                    if (k == i)
-                    {
-                        k++;
-                    }
-                    else if (k >= ballArray.size() || i >= ballArray.size())
-                    {
-                        break;
-                    }
-
-                    Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[i].position, ballArray[k].position));
-                    if (isCirclesColliding(ballArray[i], ballArray[k]) && Vector2DotProduct(n, Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/)) < 0)
-                    {
-                        float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/), n)) / (Vector2DotProduct(n, n) * (1 / ballArray[i].mass) + (1 / ballArray[k].mass)));
-                        Vector2 newVelocity = Vector2Add(ballArray[i].velocity, Vector2Scale(n, (j / ballArray[i].mass)));
-                        ballArray[i].velocity = newVelocity;
-                        Vector2 newVelocity2 = Vector2Subtract(ballArray[k].velocity, Vector2Scale(n, (j / ballArray[k].mass)));
-                        ballArray[k].velocity = newVelocity2;
-                    }
-                }
-            }
+            checkCollisionInCell(grid,elasticityCoefficient);
             accumulator -= TIMESTEP;
         }
         const char* numberOfBalls = std::to_string(ballArray.size()).c_str();
