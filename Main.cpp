@@ -10,7 +10,6 @@ const int WINDOW_HEIGHT = 720;
 // const int numberOfCircles = 5;
 const float FPS = 60;
 const float TIMESTEP = 1 / FPS; // Sets the timestep to 1 / FPS. But timestep can be any very small value.
-const int cellSize = 50;
 
 struct Ball
 {
@@ -22,53 +21,6 @@ struct Ball
     float inverse_mass; // A variable for 1 / mass. Used in the calculation for acceleration = sum of forces / mass
     Vector2 velocity;
 };
-
-struct cell{
-    Vector2 position;
-    float cellSize;
-    Color color;
-    Vector2 max;
-    Vector2 min;
-    
-    std::vector<Ball> ballsInCell;
-
-    bool operator==(const cell& cell){
-        return (this->position.x == cell.position.x && this->position.y == cell.position.y);
-    }
-
-    bool operator==(const Vector2& position){
-        return (this->position.x == position.x && this->position.y == position.y);
-    }
-};
-
-Vector2 getNearestIndexAtPoint(Vector2 position){
-    return Vector2{std::floor(position.x/cellSize), std::floor(position.y/cellSize)};
-}
-
-void initializeCell(cell &testCell, Vector2 pos, Color color){
-    testCell.position = pos;
-    testCell.cellSize = cellSize;
-    testCell.max = Vector2{testCell.position.x + cellSize, testCell.position.y};
-    testCell.min = Vector2{testCell.position.x, testCell.position.y + cellSize};
-    testCell.color = color;
-}
-
-void initializeAllCells(std::vector<std::vector<cell>> &Cells){
-    // get array of columns, store it in a row.
-    int numberOFRows = std::ceil((float)WINDOW_HEIGHT/(float)cellSize);
-    int numberOfColumns = std::ceil((float)WINDOW_WIDTH/(float)cellSize);
-    std::cout << numberOFRows << std::endl;
-    std::cout << numberOfColumns << std::endl;
-    for (int i = 0; i < numberOFRows; i++){
-        std::vector<cell> row;
-        for (int j = 0; j < numberOfColumns; j++){
-            cell x;
-            initializeCell(x, Vector2{(float) j*cellSize, (float) i*cellSize}, RED);
-            row.push_back(x); 
-        }
-        Cells.push_back(row);
-    }
-}
 
 float getDistance(Ball b1, Ball b2)
 {
@@ -131,14 +83,13 @@ void InitializeBall(std::vector<Ball> &array, int arraySize, bool isLarge)
         {
             ball.radius = 25.0f;
             ball.mass = 10.0f;
-            ball.inverse_mass = 1.0f / 10.0f;
         }
         else
         {
             ball.radius = (float)GetRandomValue(5, 10);
             ball.mass = 1.0f;
-            ball.inverse_mass = 1.0f;
         }
+        ball.inverse_mass = 1.0f / ball.mass;
         ball.color = randomColor;
         ball.velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
         array.push_back(ball);
@@ -170,9 +121,9 @@ int main()
     // ball.inverse_mass = 1 / ball.mass;
     // ball.velocity = Vector2Zero();
 
-    int elasticityCoefficient = 0.5f;
+    int elasticityCoefficient = 1.0f;
 
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Exercise 5");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Homework 3");
 
     SetTargetFPS(FPS);
 
@@ -180,23 +131,12 @@ int main()
 
     std::vector<Ball> ballArray;
     int spawnInstance = 0;
-    
-    std::vector<std::vector<cell>> grid;
-    initializeAllCells(grid);
 
-   
-    bool drawGrid = false;
     while (!WindowShouldClose())
     {
-        
         float delta_time = GetFrameTime();
         Vector2 forces = Vector2Zero();
-        Vector2 mouseIndexLocation = getNearestIndexAtPoint(GetMousePosition());
-        std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
 
-        if (IsKeyPressed(KEY_TAB)){
-            drawGrid = !drawGrid;
-        }
         if (IsKeyPressed(KEY_SPACE))
         {
             if (spawnInstance == 9)
@@ -243,7 +183,7 @@ int main()
                         break;
                     }
 
-                    Vector2 n = Vector2Subtract(ballArray[i].position, ballArray[k].position); // currently swapped (as per sir's comment)
+                    Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[i].position, ballArray[k].position)); // currently swapped (as per sir's comment)
                     if (isCirclesColliding(ballArray[i], ballArray[k]) && Vector2DotProduct(n, Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/)) < 0)
                     {
                         float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/), n)) / (Vector2DotProduct(n, n) * (1 / ballArray[i].mass) + (1 / ballArray[k].mass)));
@@ -264,15 +204,6 @@ int main()
         {
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
         }
-
-        if(drawGrid){
-            for(int i = 0; i < grid.size(); i++){
-                for(int j = 0; j < grid[i].size(); j++){
-                    DrawRectangleLines(grid[i][j].position.x, grid[i][j].position.y, cellSize, cellSize, grid[i][j].color);
-                }
-            }
-        }
-
 
         EndDrawing();
     }
