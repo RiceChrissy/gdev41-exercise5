@@ -10,7 +10,10 @@ const int WINDOW_HEIGHT = 720;
 // const int numberOfCircles = 5;
 const float FPS = 60;
 const float TIMESTEP = 1 / FPS; // Sets the timestep to 1 / FPS. But timestep can be any very small value.
+<<<<<<< HEAD
 int cellSize = 50;
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
 
 struct Ball
 {
@@ -23,6 +26,7 @@ struct Ball
     Vector2 velocity;
 };
 
+<<<<<<< HEAD
 struct cell
 {
     Vector2 position;
@@ -134,6 +138,8 @@ void updateCellVisuals(std::vector<std::vector<cell>> &grid)
 {
 }
 
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
 float getDistance(Ball b1, Ball b2)
 {
     Vector2 dist = Vector2Subtract(b1.position, b2.position);
@@ -195,14 +201,13 @@ void InitializeBall(std::vector<Ball> &array, int arraySize, bool isLarge)
         {
             ball.radius = 25.0f;
             ball.mass = 10.0f;
-            ball.inverse_mass = 1.0f / 10.0f;
         }
         else
         {
             ball.radius = (float)GetRandomValue(5, 10);
             ball.mass = 1.0f;
-            ball.inverse_mass = 1.0f;
         }
+        ball.inverse_mass = 1.0f / ball.mass;
         ball.color = randomColor;
         ball.velocity = {500.0f * RandomDirection(), 500.0f * RandomDirection()};
         array.push_back(ball);
@@ -236,7 +241,7 @@ int main()
 
     int elasticityCoefficient = 1.0f;
 
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Exercise 5");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Homework 3");
 
     SetTargetFPS(FPS);
 
@@ -244,6 +249,7 @@ int main()
 
     std::vector<Ball> ballArray;
     int spawnInstance = 0;
+<<<<<<< HEAD
 
     std::vector<std::vector<cell>> grid;
     initializeAllCells(grid);
@@ -268,6 +274,14 @@ int main()
         {
             drawGrid = !drawGrid;
         }
+=======
+
+    while (!WindowShouldClose())
+    {
+        float delta_time = GetFrameTime();
+        Vector2 forces = Vector2Zero();
+
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
         if (IsKeyPressed(KEY_SPACE))
         {
             if (spawnInstance == 9)
@@ -346,6 +360,7 @@ int main()
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
         }
 
+<<<<<<< HEAD
         if (drawGrid)
         {
             for (int i = 0; i < grid.size(); i++)
@@ -357,6 +372,8 @@ int main()
             }
         }
 
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
         EndDrawing();
     }
     CloseWindow();
