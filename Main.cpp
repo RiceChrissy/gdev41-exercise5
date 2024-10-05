@@ -4,6 +4,7 @@
 #include <raymath.h>
 #include <iostream>
 #include <vector>
+#include <string>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
@@ -23,10 +24,9 @@ struct Ball
     Vector2 velocity;
 };
 
-struct cell
-{
-    Vector2 position;
-    Color color;
+struct cell{
+    Vector2 position = {0.0f, 0.0f};
+    Color color = RED;
     Vector2 max;
     Vector2 min;
 
@@ -49,17 +49,37 @@ struct cell
     {
         this->ballsInCell.clear();
     }
+
+    bool isEmpty(){
+        return (this->ballsInCell.size() <= 0);
+    }
 };
 
-Vector2 getNearestIndexAtPoint(Vector2 position)
-{
-    return Vector2{std::floor(position.x / cellSize), std::floor(position.y / cellSize)};
+Vector2 getNearestIndexAtPoint(Vector2 position){ // get the index of the cell (inverted)
+    if(position.x < 0){
+        return Vector2{0, std::floor(position.y/cellSize)};
+    }
+    if(position.y < 0){
+        return Vector2{std::floor(position.x/cellSize), 0};
+    }
+    if(position.x < 0 && position.y < 0){
+        return Vector2{0, 0};
+    }
+
+    if(position.x > WINDOW_WIDTH){
+        return Vector2{std::floor((float)WINDOW_WIDTH/cellSize), std::floor(position.y/cellSize)};
+    }
+    if(position.y > WINDOW_HEIGHT){
+        return Vector2{std::floor(position.x/cellSize), std::floor((float)WINDOW_HEIGHT/cellSize)};
+    }
+    if(position.x > WINDOW_WIDTH && position.y > WINDOW_HEIGHT){
+        return Vector2{std::floor((float)WINDOW_WIDTH/cellSize), std::floor((float)WINDOW_HEIGHT/cellSize)};
+    }
+    return Vector2{std::floor(position.x/cellSize), std::floor(position.y/cellSize)};
 }
 
-void initializeCell(cell &testCell, Vector2 &pos, Color &color)
-{
+void initializeCell(cell &testCell, Vector2 pos, Color color){ // initalize a cell with specified properties
     testCell.position = pos;
-    // testCell.cellSize = cellSize;
     testCell.max = Vector2{testCell.position.x + cellSize, testCell.position.y};
     testCell.min = Vector2{testCell.position.x, testCell.position.y + cellSize};
     testCell.color = color;
@@ -104,7 +124,8 @@ void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball)
 
     grid[indexAtMax.x][indexAtMax.y].addBall(ball);
     */
-    // grid[indexAtCenter.x][indexAtCenter.y].color = BLUE;
+    grid[indexAtCenter.y][indexAtCenter.x].addBall(ball);
+    grid[indexAtCenter.y][indexAtCenter.x].color = BLUE;
 }
 
 void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls)
@@ -130,8 +151,19 @@ void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> 
     }
 }
 
-void updateCellVisuals(std::vector<std::vector<cell>> &grid)
-{
+
+
+void checkCollisionInCell(std::vector<std::vector<cell>> &grid){
+    for(int i = 0; i < grid.size(); i++){
+        for(int j = 0; j < grid[i].size(); j++){
+            if(grid[i][j].isEmpty()){
+                continue;
+            }
+            for(int k = 0; k < grid[i][j].ballsInCell.size(); k++){
+                
+            }
+        }
+    }
 }
 
 float getDistance(Ball b1, Ball b2)
@@ -323,7 +355,7 @@ int main()
                         break;
                     }
 
-                    Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[i].position, ballArray[k].position)); // currently swapped (as per sir's comment)
+                    Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[i].position, ballArray[k].position));
                     if (isCirclesColliding(ballArray[i], ballArray[k]) && Vector2DotProduct(n, Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/)) < 0)
                     {
                         float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity /**/), n)) / (Vector2DotProduct(n, n) * (1 / ballArray[i].mass) + (1 / ballArray[k].mass)));
@@ -336,10 +368,10 @@ int main()
             }
             accumulator -= TIMESTEP;
         }
-
+        const char* numberOfBalls = std::to_string(ballArray.size()).c_str();
         BeginDrawing();
         ClearBackground(WHITE);
-
+        DrawText(numberOfBalls, 0, 0, 30, YELLOW);
         for (int i = 0; i < ballArray.size(); i++)
         {
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
