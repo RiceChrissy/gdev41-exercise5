@@ -121,7 +121,7 @@ void initializeAllCells(std::vector<std::vector<cell>> &Cells){ // initialize AL
         }
         Cells.push_back(row);
     }
-}
+} 
 
 void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball){
     Vector2 max = Vector2{ball.position.x + ball.radius, ball.position.y + ball.radius};
