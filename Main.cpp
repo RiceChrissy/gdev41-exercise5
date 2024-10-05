@@ -28,8 +28,6 @@ struct Ball
 struct cell{
     Vector2 position = {0.0f, 0.0f};
     Color color = RED;
-    Vector2 position = {0.0f, 0.0f};
-    Color color = RED;
     Vector2 max;
     Vector2 min;
 
@@ -51,10 +49,6 @@ struct cell{
     void clearBalls()
     {
         this->ballsInCell.clear();
-    }
-
-    bool isEmpty(){
-        return (this->ballsInCell.size() <= 0);
     }
 
     bool isEmpty(){
