@@ -39,10 +39,9 @@ struct cell{
     bool operator==(const Vector2& position){
         return (this->position.x == position.x && this->position.y == position.y);
     }
-    void addBalls(){
-        this->ballsInCell.clear();
+    void addBall(Ball ball){
+        this->ballsInCell.push_back(ball);
     }
-
     void clearBalls(){
         this->ballsInCell.clear();
     }
@@ -85,19 +84,35 @@ void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball){
     Vector2 indexAtCenter = getNearestIndexAtPoint(ball.position);
     Vector2 indexAtMax = getNearestIndexAtPoint(max);
 
+
+    //std::cout << "Index At center" << indexAtCenter.x << " " << indexAtCenter.y << std::endl;
     /*
     grid[indexAtMin.x][indexAtMin.y].addBall(ball);
-    grid[indexAtCenter.x][indexAtCenter.y].addBall(ball);
+    
     grid[indexAtMax.x][indexAtMax.y].addBall(ball);
     */
+    //grid[indexAtCenter.x][indexAtCenter.y].color = BLUE;
 }
 
 void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls){
     for(int i = 0; i < grid.size(); i++){
         for(int j = 0; j < grid[i].size(); j++){
             grid[i][j].clearBalls();
+            if(grid[i][j].ballsInCell.size() > 0){
+                grid[i][j].color = BLUE;
+            }
+            else{
+                grid[i][j].color = RED;
+            }
         }
     }
+    for(int k = 0; k < balls.size(); k++){
+        addBallToCell(grid, balls[k]);
+    }
+}
+
+void updateCellVisuals(std::vector<std::vector<cell>> &grid){
+    
 }
 
 float getDistance(Ball b1, Ball b2)
@@ -222,8 +237,13 @@ int main()
         float delta_time = GetFrameTime();
         Vector2 forces = Vector2Zero();
         Vector2 mouseIndexLocation = getNearestIndexAtPoint(GetMousePosition());
-        std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
+        if(IsMouseButtonPressed(0)){
+            std::cout << "MOUSE INDEX: " << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
+            std::cout << "GRID RETURNS: " << grid[mouseIndexLocation.x][mouseIndexLocation.y].position.x << " " << grid[mouseIndexLocation.x][mouseIndexLocation.y].position.y << std::endl;
+        }
 
+        //std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
+        updateCellContents(grid, ballArray);
         if (IsKeyPressed(KEY_TAB)){
             drawGrid = !drawGrid;
         }
@@ -236,12 +256,12 @@ int main()
             }
             else
             {
-                InitializeBall(ballArray, 25, false);
+                InitializeBall(ballArray, 1, false);
                 spawnInstance++;
             }
             // std::cout << ballArray.size() << std::endl;
         }
-
+        
         // Physics
         accumulator += delta_time;
         while (accumulator >= TIMESTEP)
