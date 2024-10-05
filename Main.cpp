@@ -10,6 +10,10 @@ const int WINDOW_HEIGHT = 720;
 // const int numberOfCircles = 5;
 const float FPS = 60;
 const float TIMESTEP = 1 / FPS; // Sets the timestep to 1 / FPS. But timestep can be any very small value.
+<<<<<<< HEAD
+int cellSize = 50;
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
 
 struct Ball
 {
@@ -22,6 +26,120 @@ struct Ball
     Vector2 velocity;
 };
 
+<<<<<<< HEAD
+struct cell
+{
+    Vector2 position;
+    Color color;
+    Vector2 max;
+    Vector2 min;
+
+    std::vector<Ball> ballsInCell;
+
+    bool operator==(const cell &cell)
+    {
+        return (this->position.x == cell.position.x && this->position.y == cell.position.y);
+    }
+
+    bool operator==(const Vector2 &position)
+    {
+        return (this->position.x == position.x && this->position.y == position.y);
+    }
+    void addBall(Ball ball)
+    {
+        this->ballsInCell.push_back(ball);
+    }
+    void clearBalls()
+    {
+        this->ballsInCell.clear();
+    }
+};
+
+Vector2 getNearestIndexAtPoint(Vector2 position)
+{
+    return Vector2{std::floor(position.x / cellSize), std::floor(position.y / cellSize)};
+}
+
+void initializeCell(cell &testCell, Vector2 &pos, Color &color)
+{
+    testCell.position = pos;
+    // testCell.cellSize = cellSize;
+    testCell.max = Vector2{testCell.position.x + cellSize, testCell.position.y};
+    testCell.min = Vector2{testCell.position.x, testCell.position.y + cellSize};
+    testCell.color = color;
+}
+
+void initializeAllCells(std::vector<std::vector<cell>> &Cells)
+{
+    // get array of columns, store it in a row.
+    int numberOFRows = std::ceil((float)WINDOW_HEIGHT / (float)cellSize);
+    int numberOfColumns = std::ceil((float)WINDOW_WIDTH / (float)cellSize);
+    std::cout << numberOFRows << std::endl;
+    std::cout << numberOfColumns << std::endl;
+    for (int i = 0; i < numberOFRows; i++)
+    {
+        float iTemp = (float)i;
+        std::vector<cell> row;
+        for (int j = 0; j < numberOfColumns; j++)
+        {
+            cell x;
+            Color red = RED;
+            Vector2 newVector = {(float)(j * cellSize), (float)(i * cellSize)};
+            std::cout << newVector.x << " " << newVector.y << std::endl;
+            initializeCell(x, newVector, red);
+            row.push_back(x);
+        }
+        Cells.push_back(row);
+    }
+}
+
+void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball)
+{
+    Vector2 max = Vector2{ball.position.x + ball.radius, ball.position.y + ball.radius};
+    Vector2 min = Vector2{ball.position.x - ball.radius, ball.position.y - ball.radius};
+
+    Vector2 indexAtMin = getNearestIndexAtPoint(min);
+    Vector2 indexAtCenter = getNearestIndexAtPoint(ball.position);
+    Vector2 indexAtMax = getNearestIndexAtPoint(max);
+
+    // std::cout << "Index At center" << indexAtCenter.x << " " << indexAtCenter.y << std::endl;
+    /*
+    grid[indexAtMin.x][indexAtMin.y].addBall(ball);
+
+    grid[indexAtMax.x][indexAtMax.y].addBall(ball);
+    */
+    // grid[indexAtCenter.x][indexAtCenter.y].color = BLUE;
+}
+
+void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls)
+{
+    for (int i = 0; i < grid.size(); i++)
+    {
+        for (int j = 0; j < grid[i].size(); j++)
+        {
+            grid[i][j].clearBalls();
+            if (grid[i][j].ballsInCell.size() > 0)
+            {
+                grid[i][j].color = BLUE;
+            }
+            else
+            {
+                grid[i][j].color = RED;
+            }
+        }
+    }
+    for (int k = 0; k < balls.size(); k++)
+    {
+        addBallToCell(grid, balls[k]);
+    }
+}
+
+void updateCellVisuals(std::vector<std::vector<cell>> &grid)
+{
+}
+
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
 float getDistance(Ball b1, Ball b2)
 {
     Vector2 dist = Vector2Subtract(b1.position, b2.position);
@@ -131,12 +249,39 @@ int main()
 
     std::vector<Ball> ballArray;
     int spawnInstance = 0;
+<<<<<<< HEAD
+
+    std::vector<std::vector<cell>> grid;
+    initializeAllCells(grid);
+
+    bool drawGrid = false;
+
+    while (!WindowShouldClose())
+    {
+
+        float delta_time = GetFrameTime();
+        Vector2 forces = Vector2Zero();
+        Vector2 mouseIndexLocation = getNearestIndexAtPoint(GetMousePosition());
+        if (IsMouseButtonPressed(0))
+        {
+            std::cout << "MOUSE INDEX: " << mouseIndexLocation.x << " " << mouseIndexLocation.y << std::endl;
+            std::cout << "GRID RETURNS: " << grid[mouseIndexLocation.y][mouseIndexLocation.x].position.x << " " << grid[mouseIndexLocation.y][mouseIndexLocation.x].position.y << std::endl;
+        }
+
+        // std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
+        updateCellContents(grid, ballArray);
+        if (IsKeyPressed(KEY_TAB))
+        {
+            drawGrid = !drawGrid;
+        }
+=======
 
     while (!WindowShouldClose())
     {
         float delta_time = GetFrameTime();
         Vector2 forces = Vector2Zero();
 
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
         if (IsKeyPressed(KEY_SPACE))
         {
             if (spawnInstance == 9)
@@ -164,14 +309,24 @@ int main()
                 // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
                 ballArray[i].position = Vector2Add(ballArray[i].position, Vector2Scale(ballArray[i].velocity, TIMESTEP));
 
-                if (ballArray[i].position.x + ballArray[i].radius >= WINDOW_WIDTH || ballArray[i].position.x - ballArray[i].radius <= 0)
+                // Boundary Collision
+                if (ballArray[i].position.x - ballArray[i].radius <= 0 && ballArray[i].velocity.x < 0)
                 {
                     ballArray[i].velocity.x *= -1;
                 }
-                if (ballArray[i].position.y + ballArray[i].radius >= WINDOW_HEIGHT || ballArray[i].position.y - ballArray[i].radius <= 0)
+                if (ballArray[i].position.x + ballArray[i].radius >= WINDOW_WIDTH && ballArray[i].velocity.x > 0)
+                {
+                    ballArray[i].velocity.x *= -1;
+                }
+                if (ballArray[i].position.y - ballArray[i].radius <= 0 && ballArray[i].velocity.y < 0)
                 {
                     ballArray[i].velocity.y *= -1;
                 }
+                if (ballArray[i].position.y + ballArray[i].radius >= WINDOW_HEIGHT && ballArray[i].velocity.y > 0)
+                {
+                    ballArray[i].velocity.y *= -1;
+                }
+
                 for (int k = 0; k < ballArray.size(); k++)
                 {
                     if (k == i)
@@ -205,6 +360,20 @@ int main()
             DrawCircleV(ballArray[i].position, ballArray[i].radius, ballArray[i].color);
         }
 
+<<<<<<< HEAD
+        if (drawGrid)
+        {
+            for (int i = 0; i < grid.size(); i++)
+            {
+                for (int j = 0; j < grid[i].size(); j++)
+                {
+                    DrawRectangleLines(grid[i][j].position.x, grid[i][j].position.y, cellSize, cellSize, grid[i][j].color);
+                }
+            }
+        }
+
+=======
+>>>>>>> 71ee55e30b46c9f5f9befc3d49bef721d497db2f
         EndDrawing();
     }
     CloseWindow();
