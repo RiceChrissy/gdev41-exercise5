@@ -203,9 +203,8 @@ void checkCollisionInCell(std::vector<std::vector<cell>> &grid, float elasticity
                     Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[grid[i][j].ballsInCell[k].index].position, ballArray[grid[i][j].ballsInCell[l].index].position));
                     if (isCirclesColliding(ballArray[grid[i][j].ballsInCell[k].index], ballArray[grid[i][j].ballsInCell[l].index]) && Vector2DotProduct(n, Vector2Subtract(grid[i][j].ballsInCell[k].velocity, grid[i][j].ballsInCell[l].velocity )) < 0)
                     {
-                        std::cout << "GRID INDEX " << i << " " << j << " COLLIDING WITH BALLS : " << k << " AND " << l << std::endl;
-
                         float impulsej = -( ( (1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[grid[i][j].ballsInCell[k].index].velocity, ballArray[grid[i][j].ballsInCell[l].index].velocity ), n)) / (Vector2DotProduct(n, n) * (1 / ballArray[grid[i][j].ballsInCell[k].index].mass) + (1 / ballArray[grid[i][j].ballsInCell[l].index].mass)));
+                        
                         Vector2 newVelocity = Vector2Add(ballArray[grid[i][j].ballsInCell[k].index].velocity, Vector2Scale(n, (impulsej / ballArray[grid[i][j].ballsInCell[k].index].mass)));
                         ballArray[grid[i][j].ballsInCell[k].index].velocity = newVelocity;
                         Vector2 newVelocity2 = Vector2Subtract(ballArray[grid[i][j].ballsInCell[l].index].velocity, Vector2Scale(n, (impulsej / ballArray[grid[i][j].ballsInCell[l].index].mass)));
