@@ -5,12 +5,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 const int WINDOW_WIDTH = 1280;
 const int WINDOW_HEIGHT = 720;
-// const int numberOfCircles = 5;
 const float FPS = 60;
-const float TIMESTEP = 1 / FPS; // Sets the timestep to 1 / FPS. But timestep can be any very small value.
+const float TIMESTEP = 1 / FPS;
 const int cellSize = 50;
 
 struct Ball
@@ -20,8 +20,29 @@ struct Ball
     Color color;
     int index;
     float mass;
-    float inverse_mass; // A variable for 1 / mass. Used in the calculation for acceleration = sum of forces / mass
+    float inverse_mass;
     Vector2 velocity;
+
+
+    bool operator==(const Ball& ball){
+        return(
+            this->position.x == ball.position.x &&
+            this->position.y == ball.position.y &&
+            this->radius == ball.radius &&
+            this->index == ball.index &&
+            this->mass == ball.mass
+        );
+    }
+
+    bool operator!=(const Ball& ball){
+        return(
+            this->position.x != ball.position.x &&
+            this->position.y != ball.position.y &&
+            this->radius != ball.radius &&
+            this->index != ball.index &&
+            this->mass != ball.mass
+        );
+    }
 };
 
 struct cell{
@@ -40,8 +61,12 @@ struct cell{
         return (this->position.x == position.x && this->position.y == position.y);
     }
     void addBall(Ball& ball){
-        this->ballsInCell.push_back(ball);
-        //std::cout << this->ballsInCell.back().position.x << "  " << this->ballsInCell.back().position.y << " SIZE: " << this->ballsInCell.size() <<std::endl;
+        if(std::find(ballsInCell.begin(), ballsInCell.end(), ball) != ballsInCell.end()){
+
+        }
+        else{
+            this->ballsInCell.push_back(ball);
+        }
     }
     void clearBalls(){
         this->ballsInCell.clear();
@@ -70,7 +95,6 @@ bool isCirclesColliding(Ball b1, Ball b2)
     float distance = getDistance(b1, b2);
     if (distance <= sumOfRadii)
     {
-        // std::cout << "colliding" << std::endl;
         return true;
     }
     return false;
@@ -99,14 +123,14 @@ Vector2 getNearestIndexAtPoint(Vector2 position){ // get the index of the cell (
     return Vector2{std::floor(position.x/cellSize), std::floor(position.y/cellSize)};
 }
 
-void initializeCell(cell &testCell, Vector2 pos, Color color){ // initalize a cell with specified properties
+void initializeCell(cell &testCell, Vector2 pos, Color color){ 
     testCell.position = pos;
     testCell.max = Vector2{testCell.position.x + cellSize, testCell.position.y};
     testCell.min = Vector2{testCell.position.x, testCell.position.y + cellSize};
     testCell.color = color;
 }
 
-void initializeAllCells(std::vector<std::vector<cell>> &Cells){ // initialize ALL cells through a for loop that iterates through the number of rows/columns
+void initializeAllCells(std::vector<std::vector<cell>> &Cells){ 
     // get array of columns, store it in a row.
     int numberOFRows = std::ceil((float)WINDOW_HEIGHT/(float)cellSize);
     int numberOfColumns = std::ceil((float)WINDOW_WIDTH/(float)cellSize);
@@ -123,35 +147,36 @@ void initializeAllCells(std::vector<std::vector<cell>> &Cells){ // initialize AL
     }
 } 
 
-void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball, std::vector<cell> &collideables){
+void addBallToCell(std::vector<std::vector<cell>> &grid, Ball ball){
     Vector2 max = Vector2{ball.position.x + ball.radius, ball.position.y + ball.radius};
     Vector2 min = Vector2{ball.position.x - ball.radius, ball.position.y - ball.radius};
 
     Vector2 indexAtMin = getNearestIndexAtPoint(min);
     Vector2 indexAtCenter = getNearestIndexAtPoint(ball.position);
     Vector2 indexAtMax = getNearestIndexAtPoint(max);
+    Vector2 indexAtLowerRight = getNearestIndexAtPoint(Vector2{max.x, min.y}); 
+    Vector2 indexAtUpperLeft = getNearestIndexAtPoint(Vector2{min.x, max.y}); 
 
 
     //std::cout << "Index At center" << indexAtCenter.x << " " << indexAtCenter.y << std::endl;
     grid[indexAtCenter.y][indexAtCenter.x].addBall(ball);
     grid[indexAtCenter.y][indexAtCenter.x].color = BLUE;
-    collideables.push_back(grid[indexAtCenter.y][indexAtCenter.x]);
-    if(( indexAtMin.y != indexAtMax.y && indexAtMin.x != indexAtMax.x) &&
-        (indexAtMin.y != indexAtCenter.y && indexAtMin.x != indexAtCenter.x)){
-        grid[indexAtMin.y][indexAtMin.x].addBall(ball);
-        grid[indexAtMin.y][indexAtMin.x].color = BLUE;
-        collideables.push_back(grid[indexAtMin.y][indexAtMin.x]);
-    }
-    if(( indexAtMax.y != indexAtMin.y && indexAtMax.x != indexAtMin.x) &&
-        (indexAtMax.y != indexAtCenter.y && indexAtMax.x != indexAtCenter.x)){
-        grid[indexAtMax.y][indexAtMax.x].addBall(ball);
-        grid[indexAtMax.y][indexAtMax.x].color = BLUE;
-        collideables.push_back(grid[indexAtMax.y][indexAtMax.x]);
-    }
+
+    grid[indexAtMin.y][indexAtMin.x].addBall(ball);
+    grid[indexAtMin.y][indexAtMin.x].color = BLUE;
+
+    grid[indexAtMax.y][indexAtMax.x].addBall(ball);
+    grid[indexAtMax.y][indexAtMax.x].color = BLUE;
+
+    grid[indexAtLowerRight.y][indexAtLowerRight.x].addBall(ball);
+    grid[indexAtLowerRight.y][indexAtLowerRight.x].color = BLUE;
+
+    grid[indexAtUpperLeft.y][indexAtUpperLeft.x].addBall(ball);
+    grid[indexAtUpperLeft.y][indexAtUpperLeft.x].color = BLUE;
     
 }
 
-void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls, std::vector<cell> &collideables){
+void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> &balls){
     for(int i = 0; i < grid.size(); i++){
         for(int j = 0; j < grid[i].size(); j++){
             grid[i][j].clearBalls();
@@ -164,7 +189,7 @@ void updateCellContents(std::vector<std::vector<cell>> &grid, std::vector<Ball> 
         }
     }
     for(int k = 0; k < balls.size(); k++){
-        addBallToCell(grid, balls[k], collideables);
+        addBallToCell(grid, balls[k]);
     }
 }
 
@@ -174,12 +199,8 @@ void checkCollisionInCell(std::vector<std::vector<cell>> &grid, float elasticity
     for(int i = 0; i < grid.size(); i++){
         for(int j = 0; j < grid[i].size(); j++){
             for(int k = 0; k < grid[i][j].ballsInCell.size(); k++){
-                // std::cout << "i, k: " << i << " " << k << std::endl;
-                // ballArray[i].velocity = Vector2Add(ballArray[i].velocity, Vector2Scale(ballArray[i].acceleration, TIMESTEP));
-                // ballArray[i].velocity = Vector2Subtract(ballArray[i].velocity, Vector2Scale(ballArray[i].velocity, ballArray[i].inverse_mass * TIMESTEP));
-                // std::cout << ballArray[0].velocity.x << " " << ballArray[0].velocity.y << std::endl;
+
                 ballArray[grid[i][j].ballsInCell[k].index].position = Vector2Add(grid[i][j].ballsInCell[k].position, Vector2Scale(grid[i][j].ballsInCell[k].velocity, TIMESTEP));
-                //std::cout << "GRID INDEX " << i << " " << j << " AND ITERATION K : " << k << " " << grid[i][j].ballsInCell[k].velocity.x << " " << grid[i][j].ballsInCell[k].velocity.y << std::endl;
 
                 if (ballArray[grid[i][j].ballsInCell[k].index].position.x - ballArray[grid[i][j].ballsInCell[k].index].radius <= 0)
                 {
@@ -215,15 +236,6 @@ void checkCollisionInCell(std::vector<std::vector<cell>> &grid, float elasticity
                     Vector2 n = Vector2Normalize(Vector2Subtract(ballArray[grid[i][j].ballsInCell[k].index].position, ballArray[grid[i][j].ballsInCell[l].index].position));
                     if (isCirclesColliding(ballArray[grid[i][j].ballsInCell[k].index], ballArray[grid[i][j].ballsInCell[l].index]) && Vector2DotProduct(n, Vector2Subtract(grid[i][j].ballsInCell[k].velocity, grid[i][j].ballsInCell[l].velocity )) < 0)
                     {
-                        /*
-                        float j = -(((1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[i].velocity, ballArray[k].velocity), n))
-                         / 
-                         (Vector2DotProduct(n, n) * (1 / ballArray[i].mass) + (1 / ballArray[k].mass)));
-                        Vector2 newVelocity = Vector2Add(ballArray[i].velocity, Vector2Scale(n, (j / ballArray[i].mass)));
-                        ballArray[i].velocity = newVelocity;
-                        Vector2 newVelocity2 = Vector2Subtract(ballArray[k].velocity, Vector2Scale(n, (j / ballArray[k].mass)));
-                        ballArray[k].velocity = newVelocity2;
-                        */
                         float impulsej = -( ( 
                         (1 + elasticityCoefficient) * Vector2DotProduct(Vector2Subtract(ballArray[grid[i][j].ballsInCell[k].index].velocity, ballArray[grid[i][j].ballsInCell[l].index].velocity ), n)) 
                         / 
@@ -237,27 +249,10 @@ void checkCollisionInCell(std::vector<std::vector<cell>> &grid, float elasticity
 
                     }
                 }
-
-                
             }
         }
     }
 }
-
-
-// Deprecated atm
-// bool isCircleCollidingWithBorder(Ball b1, Border br1)
-// {
-//     float nearestX = fmaxf(br1.position.x, fminf(b1.position.x, br1.position.x + br1.width));
-//     float nearestY = fmaxf(br1.position.y, fminf(b1.position.y, br1.position.y + br1.height));
-
-//     float distance = getDistanceToPoint(b1, {nearestX, nearestY});
-//     if (distance <= b1.radius)
-//     {
-//         return true;
-//     }
-//     return false;
-// }
 
 float RandomDirection()
 {
@@ -296,37 +291,18 @@ void InitializeBall(std::vector<Ball> &array, int arraySize, bool isLarge)
     }
 }
 
-// void UpdateParticle(Particle *particle, float deltaTime)
-// {
-//     if (particle->lifeTime <= 0)
-//     {
-//         particle->isActive = false;
-//     }
-//     else
-//     {
-//         particle->position.x += (particle->speed * particle->direction.x) * deltaTime;
-//         particle->position.y += (particle->speed * particle->direction.y) * deltaTime;
-//         particle->lifeTime -= deltaTime;
-//         particle->color.a = 255 * (particle->lifeTime / particle->totalTime);
-//     }
-// }
-
 void updateBallsIndex(std::vector<Ball> &ballArray){
     for(int i = 0; i < ballArray.size(); i++){
         ballArray[i].index = i;
     }
 }
 
+Vector2 getCenterOfRectangle(Vector2 RectanglePos, float width, float height){ // ( (x1 + x2) / 2, (y1 + y2) / 2 )
+    return Vector2{(RectanglePos.x + width)/2, (RectanglePos.y + height)/2};
+}
+
 int main()
 {
-    // Ball ball;
-    // ball.position = {200, WINDOW_HEIGHT / 2};
-    // ball.radius = 30.0f;
-    // ball.color = WHITE;
-    // ball.mass = 1.0f;
-    // ball.inverse_mass = 1 / ball.mass;
-    // ball.velocity = Vector2Zero();
-
     int elasticityCoefficient = 1.0f;
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "OlivaresTamano - Exercise 5");
@@ -340,8 +316,6 @@ int main()
     
     std::vector<std::vector<cell>> grid;
     initializeAllCells(grid);
-
-    std::vector<cell> cellsToCheckCollision;
    
     bool drawGrid = false;
     while (!WindowShouldClose())
@@ -355,9 +329,8 @@ int main()
             std::cout << "SIZE OF CELL: " << grid[mouseIndexLocation.y][mouseIndexLocation.x].ballsInCell.size() << std::endl;
         }
 
-        //std::cout << mouseIndexLocation.x << " " <<  mouseIndexLocation.y << std::endl;
         updateBallsIndex(ballArray);
-        updateCellContents(grid, ballArray, cellsToCheckCollision);
+        updateCellContents(grid, ballArray);
         if (IsKeyPressed(KEY_TAB)){
             drawGrid = !drawGrid;
         }
@@ -373,7 +346,6 @@ int main()
                 InitializeBall(ballArray, 25, false);
                 spawnInstance++;
             }
-            // std::cout << ballArray.size() << std::endl;
         }
         
         // Physics
@@ -384,6 +356,7 @@ int main()
             accumulator -= TIMESTEP;
         }
         const char* numberOfBalls = std::to_string(ballArray.size()).c_str();
+        
         BeginDrawing();
         ClearBackground(WHITE);
         DrawText(numberOfBalls, 0, 0, 30, YELLOW);
@@ -395,6 +368,9 @@ int main()
         if(drawGrid){
             for(int i = 0; i < grid.size(); i++){
                 for(int j = 0; j < grid[i].size(); j++){
+                    const char* numberOfBalsInCell = std::to_string(grid[i][j].ballsInCell.size()).c_str();
+                    Vector2 rectMidpoint = Vector2{getCenterOfRectangle(grid[i][j].position, cellSize, cellSize)};
+                    DrawText(numberOfBalsInCell, grid[i][j].max.x, grid[i][j].max.y, 5, PURPLE);
                     DrawRectangleLines(grid[i][j].position.x, grid[i][j].position.y, cellSize, cellSize, grid[i][j].color);
                 }
             }
